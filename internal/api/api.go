@@ -12,6 +12,7 @@ import (
 
 type EOLData struct {
 	Result Result `json:"result"`
+	Product string
 }
 
 
@@ -33,7 +34,7 @@ type Result struct {
 	IsEol        bool       `json:"isEol"`
 	EolFrom      CustomTime `json:"eolFrom"`
 	IsEoes       bool       `json:"isEoes"`
-	EoesFrom     *string    `json:"eoesFrom"`
+	EoesFrom     *CustomTime `json:"eoesFrom"`
 	IsMaintained bool       `json:"isMaintained"`
 	Latest       Latest     `json:"latest"`
 	Custom       *string    `json:"custom"`
@@ -49,7 +50,6 @@ func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {
 	rawDate, _ := strconv.Unquote(string(b))
 
 	date, err := time.Parse(layout, rawDate)
-	fmt.Println(date)
 	if err != nil {
 		return err
 	}
@@ -60,6 +60,7 @@ func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {
 func FetchProductCycleEOLData(product string, release string) (data EOLData, err error) {
 
 	baseUrl := "https://endoflife.date/api/v1"
+	data.Product = product
 
 	httpClient := http.Client{
 		Timeout: time.Second * 2,
@@ -92,5 +93,5 @@ func FetchProductCycleEOLData(product string, release string) (data EOLData, err
 
 	err = json.Unmarshal(body, &data)
 
-	return data, nil
+	return data, err
 }
