@@ -56,7 +56,7 @@ var (
 	EolDateUnixTS = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "eol_date",
-			Help: "End of life date for the release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
+			Help: "End of life date for the product release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
 		}, []string{
 			"host",
 			"name",
