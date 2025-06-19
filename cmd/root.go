@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os-eol-exporter/internal/exporter"
+	"eol-exporter/internal/exporter"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,7 +16,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "os-eol-exporter",
+	Use:   "eol-exporter",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -27,7 +27,10 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		exporter.StartExporter()
+		err := exporter.StartExporter()
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 
@@ -47,7 +50,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.os-eol-exporter.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.eol-exporter.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -64,10 +67,10 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".os-eol-exporter" (without extension).
+		// Search config in home directory with name ".eol-exporter" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".os-eol-exporter")
+		viper.SetConfigName(".eol-exporter")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

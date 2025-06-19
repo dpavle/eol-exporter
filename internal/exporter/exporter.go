@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os-eol-exporter/internal/api"
+	"eol-exporter/internal/api"
 	"strconv"
 	"time"
-	"github.com/themakers/osinfo"
+	"regexp"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/zcalusic/sysinfo"
 )
 
 var (
-	osEolInfo = prometheus.NewGaugeVec(
+	ProductReleaseInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "os_eol_info",
-			Help: "Information about the end of life for the host OS.",
+			Name: "product_release_info",
+			Help: "Full information about a product release cycle.",
 		}, []string{
 			"host",
 			"name",
@@ -33,10 +34,29 @@ var (
 			"latest_link",
 		},
 	)
-	osEolDateUnixTS = prometheus.NewGaugeVec(
+	ProductDetailsInfo = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "os_eol_date",
-			Help: "OS end-of-life date as seconds since Unix epoch (Unix Timestamp).",
+			Name: "product_details_info",
+			Help: "Full details of a product.",
+		}, []string{
+			"host",
+			"name",
+			"product",
+			"label",
+			//"aliases",
+			"category",
+			//"tags",
+			"versionCommand",
+			//"identifiers",
+			//"labels",
+			//"links",
+			//"releases",
+		},
+	)
+	EolDateUnixTS = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "eol_date",
+			Help: "End of life date for the release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
 		}, []string{
 			"host",
 			"name",
@@ -45,10 +65,10 @@ var (
 			"label",
 		},
 	)
-	osEoasDateUnixTS = prometheus.NewGaugeVec(
+	EoasDateUnixTS = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "os_eoas_date",
-			Help: "OS end-of-life date as seconds since Unix epoch (Unix Timestamp).",
+			Name: "eoas_date",
+			Help: "End of active support date for the release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
 		}, []string{
 			"host",
 			"name",
@@ -57,10 +77,10 @@ var (
 			"label",
 		},
 	)
-	osEoesDateUnixTS = prometheus.NewGaugeVec(
+	EoesDateUnixTS = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "os_eoes_date",
-			Help: "OS end-of-life date as seconds since Unix epoch (Unix Timestamp).",
+			Name: "eoes_date",
+			Help: "End of extended support date for the release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
 		}, []string{
 			"host",
 			"name",
@@ -71,59 +91,70 @@ var (
 	)
 )
 
-func RefreshMetrics(reg *prometheus.Registry, apiData api.EOLData) {
+func RefreshMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleData, productDetailsData api.ProductDetailsData) {
 
 	hostname, _ := os.Hostname()
-	osEolInfo.WithLabelValues(
+	ProductReleaseInfo.WithLabelValues(
 		fmt.Sprintf("%s", hostname),
-		apiData.Result.Name,
-		apiData.Product,
-		apiData.Result.Codename,
-		apiData.Result.Label,
-		strconv.FormatBool(apiData.Result.IsLts),
-		strconv.FormatBool(apiData.Result.IsEol),
-		strconv.FormatBool(apiData.Result.IsEoas),
-		strconv.FormatBool(apiData.Result.IsEoes),
-		strconv.FormatBool(apiData.Result.IsMaintained),
-		apiData.Result.Latest.Name,
-		apiData.Result.Latest.Link,
+		productCycleData.Result.Name,
+		productCycleData.Product,
+		productCycleData.Result.Codename,
+		productCycleData.Result.Label,
+		strconv.FormatBool(productCycleData.Result.IsLts),
+		strconv.FormatBool(productCycleData.Result.IsEol),
+		strconv.FormatBool(productCycleData.Result.IsEoas),
+		strconv.FormatBool(productCycleData.Result.IsEoes),
+		strconv.FormatBool(productCycleData.Result.IsMaintained),
+		productCycleData.Result.Latest.Name,
+		productCycleData.Result.Latest.Link,
 
 	).Set(1)
 
-	osEolDateUnixTS.WithLabelValues(
+	ProductDetailsInfo.WithLabelValues(
 		fmt.Sprintf("%s", hostname),
-		apiData.Result.Name,
-		apiData.Product,
-		apiData.Result.Codename,
-		apiData.Result.Label,
-	).Set(float64(apiData.Result.EolFrom.Unix()))
+		productDetailsData.Result.Name,
+		productDetailsData.Product,
+		productDetailsData.Result.Label,
+		productDetailsData.Result.Category,
+		productDetailsData.Result.VersionCommand,
+	).Set(1)
 
-	if apiData.Result.EoasFrom != nil {
-		osEoasDateUnixTS.WithLabelValues(
+	if productCycleData.Result.EolFrom != nil {
+		EolDateUnixTS.WithLabelValues(
 			fmt.Sprintf("%s", hostname),
-			apiData.Result.Name,
-			apiData.Product,
-			apiData.Result.Codename,
-			apiData.Result.Label,
-		).Set(float64(apiData.Result.EoasFrom.Unix()))
+			productCycleData.Result.Name,
+			productCycleData.Product,
+			productCycleData.Result.Codename,
+			productCycleData.Result.Label,
+		).Set(float64(productCycleData.Result.EolFrom.Unix()))
 	}
-	if apiData.Result.EoesFrom != nil {
-		osEoesDateUnixTS.WithLabelValues(
+
+	if productCycleData.Result.EoasFrom != nil {
+		EoasDateUnixTS.WithLabelValues(
 			fmt.Sprintf("%s", hostname),
-			apiData.Result.Name,
-			apiData.Product,
-			apiData.Result.Codename,
-			apiData.Result.Label,
-		).Set(float64(apiData.Result.EoesFrom.Unix()))
+			productCycleData.Result.Name,
+			productCycleData.Product,
+			productCycleData.Result.Codename,
+			productCycleData.Result.Label,
+		).Set(float64(productCycleData.Result.EoasFrom.Unix()))
+	}
+	if productCycleData.Result.EoesFrom != nil {
+		EoesDateUnixTS.WithLabelValues(
+			fmt.Sprintf("%s", hostname),
+			productCycleData.Result.Name,
+			productCycleData.Product,
+			productCycleData.Result.Codename,
+			productCycleData.Result.Label,
+		).Set(float64(productCycleData.Result.EoesFrom.Unix()))
 	}
 
 }
 
-func UpdateMetrics(reg *prometheus.Registry, data api.EOLData) {
+func UpdateMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleData, productDetailsData api.ProductDetailsData) {
 	ticker := time.NewTicker(24 * time.Hour)
 
 	for {
-		RefreshMetrics(reg, data)
+		RefreshMetrics(reg, productCycleData, productDetailsData)
 		<-ticker.C
 	}
 }
@@ -131,17 +162,33 @@ func UpdateMetrics(reg *prometheus.Registry, data api.EOLData) {
 func StartExporter() error {
 	reg := prometheus.NewRegistry()
 
-	reg.MustRegister(osEolInfo)
-	reg.MustRegister(osEolDateUnixTS)
-	reg.MustRegister(osEoasDateUnixTS)
-	reg.MustRegister(osEoesDateUnixTS)
+	reg.MustRegister(ProductReleaseInfo)
+	reg.MustRegister(ProductDetailsInfo)
+	reg.MustRegister(EolDateUnixTS)
+	reg.MustRegister(EoasDateUnixTS)
+	reg.MustRegister(EoesDateUnixTS)
 
-	os_info := osinfo.GetInfo()
-	product := os_info.LinuxRelease.ID
-	version := os_info.LinuxRelease.VersionID
+	var si sysinfo.SysInfo
+	si.GetSysInfo()
 
-	data, _ := api.FetchProductCycleEOLData(product, version)
-	go UpdateMetrics(reg, data)
+	// OS
+	product := si.OS.Vendor
+	version := si.OS.Version
+
+	var productCycleData api.ProductCycleData
+	var productDetailsData api.ProductDetailsData
+
+	productCycleData, _ = api.FetchProductCycleData(product, version)
+	productDetailsData, _ = api.FetchProductDetailsData(product)
+	go UpdateMetrics(reg, productCycleData, productDetailsData)
+
+	// Kernel
+	pattern := regexp.MustCompile(`^[0-9]+.[0-9]+`)
+	version = pattern.FindString(si.Kernel.Release)
+
+	productCycleData, _ = api.FetchProductCycleData("linux", version)
+	productDetailsData, _ = api.FetchProductDetailsData("linux")
+	go UpdateMetrics(reg, productCycleData, productDetailsData)
 
 	handler := promhttp.HandlerFor(
 		reg, promhttp.HandlerOpts{},
