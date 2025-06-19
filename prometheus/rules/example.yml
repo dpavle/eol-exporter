@@ -1,0 +1,36 @@
+groups:
+- name: example
+  rules:
+  - alert: EndOfLife
+    expr: eol_date{} - time() < 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: "{{ $labels.product }}{{ $labels.name }} has reached end-of-life."
+      description: "{{ $labels.product }}{{ $labels.name }} has reached end-of-life. Upgrade to a supported version as soon as possible."
+  - alert: EndOfLifeSoon
+    expr: eol_date{} - time() < 2592000
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than 30 days."
+      description: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than 30 days. Upgrade to a supported version as soon as possible."
+  - alert: EndOfLifeInThreeMonths
+    expr: eol_date{} - time() < 7776000
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than three months."
+      description: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than three months. Consider upgrading to a supported version as soon as possible."
+  - alert: EndOfLifeInSixMonths
+    expr: eol_date{} - time() < 15552000
+    for: 0m
+    labels:
+      severity: info
+    annotations:
+      summary: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than six months."
+      description: "{{ $labels.product }}{{ $labels.name }} will be end-of-life in less than six months. Consider upgrading to a supported version soon."
+
