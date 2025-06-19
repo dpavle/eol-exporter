@@ -74,14 +74,12 @@ func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-func FetchProductCycleData(product string, release string) (data ProductCycleData, err error) {
+func FetchProductCycleData(client *http.Client, baseUrl string, product string, release string) (data ProductCycleData, err error) {
 
-	baseUrl := "https://endoflife.date/api/v1"
-	data.Product = product
-
-	httpClient := http.Client{
-		Timeout: time.Second * 2,
+	if baseUrl == "" {
+		baseUrl = "https://endoflife.date/api/v1"
 	}
+	data.Product = product
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/products/%s/releases/%s", baseUrl, product, release), nil)
 
@@ -90,7 +88,7 @@ func FetchProductCycleData(product string, release string) (data ProductCycleDat
 		return data, err
 	}
 
-	res, getErr := httpClient.Do(req)
+	res, getErr := client.Do(req)
 	if getErr != nil {
 		log.Fatal(getErr)
 		return data, getErr
@@ -112,14 +110,12 @@ func FetchProductCycleData(product string, release string) (data ProductCycleDat
 	return data, err
 }
 
-func FetchProductDetailsData(product string) (data ProductDetailsData, err error) {
+func FetchProductDetailsData(client *http.Client, baseUrl string, product string) (data ProductDetailsData, err error) {
 
-	baseUrl := "https://endoflife.date/api/v1"
-	data.Product = product
-
-	httpClient := http.Client{
-		Timeout: time.Second * 2,
+	if baseUrl == "" {
+		baseUrl = "https://endoflife.date/api/v1"
 	}
+	data.Product = product
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/products/%s", baseUrl, product), nil)
 
@@ -128,7 +124,7 @@ func FetchProductDetailsData(product string) (data ProductDetailsData, err error
 		return data, err
 	}
 
-	res, getErr := httpClient.Do(req)
+	res, getErr := client.Do(req)
 
 	if getErr != nil {
 		log.Fatal(getErr)

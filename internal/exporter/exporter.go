@@ -160,6 +160,11 @@ func UpdateMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleDa
 }
 
 func StartExporter() error {
+
+	httpClient := http.Client{
+		Timeout: time.Second * 2,
+	}
+
 	reg := prometheus.NewRegistry()
 
 	reg.MustRegister(ProductReleaseInfo)
@@ -178,16 +183,16 @@ func StartExporter() error {
 	var productCycleData api.ProductCycleData
 	var productDetailsData api.ProductDetailsData
 
-	productCycleData, _ = api.FetchProductCycleData(product, version)
-	productDetailsData, _ = api.FetchProductDetailsData(product)
+	productCycleData, _ = api.FetchProductCycleData(&httpClient, "", product, version)
+	productDetailsData, _ = api.FetchProductDetailsData(&httpClient, "", product)
 	go UpdateMetrics(reg, productCycleData, productDetailsData)
 
 	// Kernel
 	pattern := regexp.MustCompile(`^[0-9]+.[0-9]+`)
 	version = pattern.FindString(si.Kernel.Release)
 
-	productCycleData, _ = api.FetchProductCycleData("linux", version)
-	productDetailsData, _ = api.FetchProductDetailsData("linux")
+	productCycleData, _ = api.FetchProductCycleData(&httpClient, "", "linux", version)
+	productDetailsData, _ = api.FetchProductDetailsData(&httpClient, "", "linux")
 	go UpdateMetrics(reg, productCycleData, productDetailsData)
 
 	handler := promhttp.HandlerFor(
