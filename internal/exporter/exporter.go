@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 	"regexp"
+	"log"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -182,18 +183,41 @@ func StartExporter() error {
 
 	var productCycleData api.ProductCycleData
 	var productDetailsData api.ProductDetailsData
+	var productCycleApiErr error
+	var productDetailsApiErr error
 
-	productCycleData, _ = api.FetchProductCycleData(&httpClient, "", product, version)
-	productDetailsData, _ = api.FetchProductDetailsData(&httpClient, "", product)
+	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", product, version)
+	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", product)
+	if productCycleApiErr != nil {
+		log.Println(productCycleApiErr)
+	}
+	if productDetailsApiErr != nil {
+		log.Println(productDetailsApiErr)
+	}
 	go UpdateMetrics(reg, productCycleData, productDetailsData)
 
 	// Kernel
 	pattern := regexp.MustCompile(`^[0-9]+.[0-9]+`)
 	version = pattern.FindString(si.Kernel.Release)
 
-	productCycleData, _ = api.FetchProductCycleData(&httpClient, "", "linux", version)
-	productDetailsData, _ = api.FetchProductDetailsData(&httpClient, "", "linux")
+	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", "linux", version)
+	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", "linux")
+	if productCycleApiErr != nil {
+		log.Println(productCycleApiErr)
+	}
+	if productDetailsApiErr != nil {
+		log.Println(productDetailsApiErr)
+	}
 	go UpdateMetrics(reg, productCycleData, productDetailsData)
+
+	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", "undefined", "undefined")
+	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", "undefined")
+	if productCycleApiErr != nil {
+		log.Println(productCycleApiErr)
+	}
+	if productDetailsApiErr != nil {
+		log.Println(productDetailsApiErr)
+	}
 
 	handler := promhttp.HandlerFor(
 		reg, promhttp.HandlerOpts{},

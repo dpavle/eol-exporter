@@ -81,7 +81,8 @@ func FetchProductCycleData(client *http.Client, baseUrl string, product string, 
 	}
 	data.Product = product
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/products/%s/releases/%s", baseUrl, product, release), nil)
+	fullUrl := fmt.Sprintf("%s/products/%s/releases/%s", baseUrl, product, release)
+	req, err := http.NewRequest(http.MethodGet, fullUrl, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -92,6 +93,10 @@ func FetchProductCycleData(client *http.Client, baseUrl string, product string, 
 	if getErr != nil {
 		log.Fatal(getErr)
 		return data, getErr
+	}
+
+	if res.StatusCode != 200 {
+		log.Printf("%s returned non-200 error code: %d", fullUrl, res.StatusCode)
 	}
 
 	if res.Body != nil {
@@ -117,7 +122,8 @@ func FetchProductDetailsData(client *http.Client, baseUrl string, product string
 	}
 	data.Product = product
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/products/%s", baseUrl, product), nil)
+	fullUrl := fmt.Sprintf("%s/products/%s", baseUrl, product)
+	req, err := http.NewRequest(http.MethodGet, fullUrl, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -129,6 +135,10 @@ func FetchProductDetailsData(client *http.Client, baseUrl string, product string
 	if getErr != nil {
 		log.Fatal(getErr)
 		return data, getErr
+	}
+
+	if res.StatusCode != 200 {
+		log.Printf("%s returned non-200 error code: %d", fullUrl, res.StatusCode)
 	}
 
 	if res.Body != nil {
