@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strconv"
 )
-
 type ProductCycleData struct {
 	Result ProductCycleResult `json:"result"`
 	Product string

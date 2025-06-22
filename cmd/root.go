@@ -17,16 +17,18 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "eol-exporter",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "A Prometheus exporter that exports installed software/product end-of-life dates in metric format.",
+	Long: `
+This tool fetches installed software versions (or any arbitrary product/version, defined as a plugin)
+and provides end-of-life information about it (fetched from endoflife.date API) in Prometheus metric format.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+By default, only kernel and OS versions are monitored, but additional software or products can be added
+using custom plugins.
+	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+
 		err := exporter.StartExporter()
 		if err != nil {
 			fmt.Println(err)

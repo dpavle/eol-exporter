@@ -1,0 +1,3 @@
+port: 3020
+plugins:
+  - ubuntu_demo

@@ -9,6 +9,8 @@ import (
 	"time"
 	"regexp"
 	"log"
+	"plugin"
+	"github.com/spf13/viper"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -92,7 +94,7 @@ var (
 	)
 )
 
-func RefreshMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleData, productDetailsData api.ProductDetailsData) {
+func RegisterTimeSeries(reg *prometheus.Registry, productCycleData api.ProductCycleData, productDetailsData api.ProductDetailsData) {
 
 	hostname, _ := os.Hostname()
 	ProductReleaseInfo.WithLabelValues(
@@ -151,13 +153,30 @@ func RefreshMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleD
 
 }
 
-func UpdateMetrics(reg *prometheus.Registry, productCycleData api.ProductCycleData, productDetailsData api.ProductDetailsData) {
+func FetchDataAndUpdateMetrics(reg *prometheus.Registry, httpClient *http.Client, product string, version string) {
 	ticker := time.NewTicker(24 * time.Hour)
 
 	for {
-		RefreshMetrics(reg, productCycleData, productDetailsData)
+		var productCycleData api.ProductCycleData
+		var productDetailsData api.ProductDetailsData
+		var productCycleApiErr error
+		var productDetailsApiErr error
+
+		productCycleData, productCycleApiErr = api.FetchProductCycleData(httpClient, "", product, version)
+		productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(httpClient, "", product)
+		if productCycleApiErr != nil {
+			log.Println(productCycleApiErr)
+		}
+		if productDetailsApiErr != nil {
+			log.Println(productDetailsApiErr)
+		}
+		RegisterTimeSeries(reg, productCycleData, productDetailsData)
 		<-ticker.C
 	}
+}
+
+type DataPlugin interface {
+	GetProductAndVersion() (product string, version string, err error)
 }
 
 func StartExporter() error {
@@ -174,49 +193,38 @@ func StartExporter() error {
 	reg.MustRegister(EoasDateUnixTS)
 	reg.MustRegister(EoesDateUnixTS)
 
+	// OS
 	var si sysinfo.SysInfo
 	si.GetSysInfo()
-
-	// OS
-	product := si.OS.Vendor
-	version := si.OS.Version
-
-	var productCycleData api.ProductCycleData
-	var productDetailsData api.ProductDetailsData
-	var productCycleApiErr error
-	var productDetailsApiErr error
-
-	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", product, version)
-	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", product)
-	if productCycleApiErr != nil {
-		log.Println(productCycleApiErr)
-	}
-	if productDetailsApiErr != nil {
-		log.Println(productDetailsApiErr)
-	}
-	go UpdateMetrics(reg, productCycleData, productDetailsData)
+	go FetchDataAndUpdateMetrics(reg, &httpClient, si.OS.Vendor, si.OS.Version)
 
 	// Kernel
-	pattern := regexp.MustCompile(`^[0-9]+.[0-9]+`)
-	version = pattern.FindString(si.Kernel.Release)
+	kernelPattern := regexp.MustCompile(`^[0-9]+.[0-9]+`)
+	go FetchDataAndUpdateMetrics(reg, &httpClient, "linux", kernelPattern.FindString(si.Kernel.Release))
 
-	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", "linux", version)
-	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", "linux")
-	if productCycleApiErr != nil {
-		log.Println(productCycleApiErr)
-	}
-	if productDetailsApiErr != nil {
-		log.Println(productDetailsApiErr)
-	}
-	go UpdateMetrics(reg, productCycleData, productDetailsData)
+	// Plugins
+	var EnabledPlugins []string = viper.GetStringSlice("plugins")
 
-	productCycleData, productCycleApiErr = api.FetchProductCycleData(&httpClient, "", "undefined", "undefined")
-	productDetailsData, productDetailsApiErr = api.FetchProductDetailsData(&httpClient, "", "undefined")
-	if productCycleApiErr != nil {
-		log.Println(productCycleApiErr)
-	}
-	if productDetailsApiErr != nil {
-		log.Println(productDetailsApiErr)
+	for _, EnabledPlugin := range EnabledPlugins {
+		p, err := plugin.Open(fmt.Sprintf("plugins/%s/%s.so", EnabledPlugin, EnabledPlugin))
+		if err != nil {
+			log.Fatalf("Failed to open plugin: %s", err)
+		}
+		symbol, err := p.Lookup("DataPlugin")
+		if err != nil {
+			log.Fatalf("Failed to find plugin symbol 'DataPlugin': %s", err)
+		}
+
+		pluginInstance, ok := symbol.(DataPlugin)
+		if !ok {
+			log.Fatal("Symbol does not implement the DataPlugin interface!")
+		}
+
+		PluginReturnedProduct, PluginReturnedVersion, err := pluginInstance.GetProductAndVersion()
+		if err != nil {
+			log.Fatalf("Failed executing plugin: %s", err)
+		}
+		go FetchDataAndUpdateMetrics(reg, &httpClient, PluginReturnedProduct, PluginReturnedVersion)
 	}
 
 	handler := promhttp.HandlerFor(
@@ -224,6 +232,8 @@ func StartExporter() error {
 	)
 	http.Handle("/metrics", handler)
 
-	fmt.Println("Starting HTTP server on :2112")
-	return http.ListenAndServe(":2112", nil)
+	port := viper.GetString("port")
+
+	fmt.Printf("Starting HTTP server on %s", port)
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
