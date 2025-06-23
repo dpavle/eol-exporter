@@ -25,7 +25,7 @@ jobs:
       run: go build -v ./...
 
     - name: Build plugins
-      run: find plugins/ -regex '.*.go' -exec go build -buildmode=plugin {} \;
+      run: find plugins/ -regex '.*.go' -exec go build -v -tags plugin -buildmode=plugin {} \;
 
     - name: Test
       run: go test -v ./...
