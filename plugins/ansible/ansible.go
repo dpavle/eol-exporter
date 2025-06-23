@@ -3,14 +3,14 @@
 package main
 
 import (
-	"os/exec"
 	"bytes"
 	"log"
+	"os/exec"
 	"regexp"
 	"strings"
 )
 
-type AnsiblePlugin struct {}
+type AnsiblePlugin struct{}
 
 func (p *AnsiblePlugin) GetProductAndVersion() (product string, version string, err error) {
 

@@ -2,33 +2,34 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"time"
-	"fmt"
 	"strconv"
+	"time"
 )
+
 type ProductCycleData struct {
-	Result ProductCycleResult `json:"result"`
+	Result  ProductCycleResult `json:"result"`
 	Product string
 }
 
 type ProductDetailsData struct {
-	Result ProductDetailsResult `json:"result"`
+	Result  ProductDetailsResult `json:"result"`
 	Product string
 }
 
 type ProductDetailsResult struct {
-	Name string `json:"name"`
-	Label        string     `json:"label"`
-	Category string `json:"category"`
-	VersionCommand string `json:"versionCommand"`
-	Links ProductDetailsLinks `json:"links"`
+	Name           string              `json:"name"`
+	Label          string              `json:"label"`
+	Category       string              `json:"category"`
+	VersionCommand string              `json:"versionCommand"`
+	Links          ProductDetailsLinks `json:"links"`
 }
 
 type ProductDetailsLinks struct {
-	HTML string `json:"html"`
+	HTML          string `json:"html"`
 	ReleasePolicy string `json:"releasePolicy"`
 }
 
@@ -39,21 +40,21 @@ type ProductCycleLatest struct {
 }
 
 type ProductCycleResult struct {
-	Name         string     `json:"name"`
-	Codename     string     `json:"codename"`
-	Label        string     `json:"label"`
-	ReleaseDate  CustomTime `json:"releaseDate"`
-	IsLts        bool       `json:"isLts"`
-	LtsFrom      *CustomTime    `json:"ltsFrom"`
-	IsEoas       bool       `json:"isEoas"`
-	EoasFrom     *CustomTime `json:"eoasFrom"`
-	IsEol        bool       `json:"isEol"`
-	EolFrom      *CustomTime `json:"eolFrom"`
-	IsEoes       bool       `json:"isEoes"`
-	EoesFrom     *CustomTime `json:"eoesFrom"`
-	IsMaintained bool       `json:"isMaintained"`
-	Latest       ProductCycleLatest     `json:"latest"`
-	Custom       *interface{}    `json:"custom"`
+	Name         string             `json:"name"`
+	Codename     string             `json:"codename"`
+	Label        string             `json:"label"`
+	ReleaseDate  CustomTime         `json:"releaseDate"`
+	IsLts        bool               `json:"isLts"`
+	LtsFrom      *CustomTime        `json:"ltsFrom"`
+	IsEoas       bool               `json:"isEoas"`
+	EoasFrom     *CustomTime        `json:"eoasFrom"`
+	IsEol        bool               `json:"isEol"`
+	EolFrom      *CustomTime        `json:"eolFrom"`
+	IsEoes       bool               `json:"isEoes"`
+	EoesFrom     *CustomTime        `json:"eoesFrom"`
+	IsMaintained bool               `json:"isMaintained"`
+	Latest       ProductCycleLatest `json:"latest"`
+	Custom       *interface{}       `json:"custom"`
 }
 
 // parsing JSON date strings as time.Time

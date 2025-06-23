@@ -3,13 +3,13 @@
 package main
 
 import (
-	"os/exec"
 	"bytes"
 	"log"
+	"os/exec"
 	"regexp"
 )
 
-type DockerPlugin struct {}
+type DockerPlugin struct{}
 
 func (p *DockerPlugin) GetProductAndVersion() (product string, version string, err error) {
 

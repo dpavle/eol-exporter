@@ -1,17 +1,17 @@
 package exporter
 
 import (
+	"eol-exporter/internal/api"
 	"fmt"
+	"github.com/spf13/viper"
+	"log"
+	"net"
 	"net/http"
 	"os"
-	"eol-exporter/internal/api"
+	"plugin"
+	"regexp"
 	"strconv"
 	"time"
-	"regexp"
-	"log"
-	"plugin"
-	"net"
-	"github.com/spf13/viper"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -60,8 +60,7 @@ var (
 	ReleaseDateUnixTS = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "release_date",
-			Help: "Release date of the product release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
-		}, []string{
+			Help: "Release date of the product release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).", }, []string{
 			"host",
 			"name",
 			"product",
@@ -123,7 +122,6 @@ func RegisterTimeSeries(reg *prometheus.Registry, productCycleData api.ProductCy
 		strconv.FormatBool(productCycleData.Result.IsMaintained),
 		productCycleData.Result.Latest.Name,
 		productCycleData.Result.Latest.Link,
-
 	).Set(1)
 
 	ProductDetailsInfo.WithLabelValues(

@@ -3,14 +3,14 @@
 package main
 
 import (
-	"os/exec"
 	"bytes"
 	"log"
+	"os/exec"
 	"regexp"
 	"strings"
 )
 
-type PythonPlugin struct {}
+type PythonPlugin struct{}
 
 func (p *PythonPlugin) GetProductAndVersion() (product string, version string, err error) {
 
