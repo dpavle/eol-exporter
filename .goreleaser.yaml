@@ -1,0 +1,58 @@
+builds:
+  - id: main
+    main: main.go
+    binary: eol-exporter
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+  - id: ansible-plugin
+    dir: plugins
+    main: ./plugins/ansible/ansible.go
+    binary: ansible.so
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags: -buildmode=plugin -tags plugin
+
+  - id: docker-plugin
+    dir: plugins
+    main: ./plugins/docker/docker.go
+    binary: docker.so
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags: -buildmode=plugin -tags plugin
+
+  - id: python-plugin
+    dir: plugins
+    main: ./plugins/python/python.go
+    binary: python.so
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags: -buildmode=plugin -tags plugin
+
+archives:
+  - id: linux
+    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+    builds:
+      - main
+      - ansible-plugin
+      - docker-plugin
+      - python-plugin
+    format: tar.gz
+    files:
+      - LICENSE
+      - README.md
+
+release:
+  draft: false
+  prerelease: auto
+
+checksum:
+  name_template: 'checksums.txt'
