@@ -15,7 +15,7 @@ builds:
       - linux
     goarch:
       - amd64
-    ldflags: -buildmode=plugin -tags plugin
+    ldflags: --buildmode=plugin --tags plugin
 
   - id: docker-plugin
     dir: plugins
@@ -25,7 +25,7 @@ builds:
       - linux
     goarch:
       - amd64
-    ldflags: -buildmode=plugin -tags plugin
+    ldflags: --buildmode=plugin --tags plugin
 
   - id: python-plugin
     dir: plugins
@@ -35,7 +35,7 @@ builds:
       - linux
     goarch:
       - amd64
-    ldflags: -buildmode=plugin -tags plugin
+    ldflags: --buildmode=plugin --tags plugin
 
 archives:
   - id: linux
