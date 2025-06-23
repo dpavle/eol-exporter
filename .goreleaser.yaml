@@ -9,7 +9,7 @@ builds:
 
   - id: ansible-plugin
     dir: plugins
-    main: ./plugins/ansible/ansible.go
+    main: ./ansible/ansible.go
     binary: ansible.so
     goos:
       - linux
@@ -19,7 +19,7 @@ builds:
 
   - id: docker-plugin
     dir: plugins
-    main: ./plugins/docker/docker.go
+    main: ./docker/docker.go
     binary: docker.so
     goos:
       - linux
@@ -29,7 +29,7 @@ builds:
 
   - id: python-plugin
     dir: plugins
-    main: ./plugins/python/python.go
+    main: ./python/python.go
     binary: python.so
     goos:
       - linux
@@ -40,12 +40,13 @@ builds:
 archives:
   - id: linux
     name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
-    builds:
+    ids:
       - main
       - ansible-plugin
       - docker-plugin
       - python-plugin
-    format: tar.gz
+    formats:
+      - tar.gz
     files:
       - LICENSE
       - README.md
