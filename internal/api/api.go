@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strconv"
 )
-
 type ProductCycleData struct {
 	Result ProductCycleResult `json:"result"`
 	Product string
@@ -54,7 +53,7 @@ type ProductCycleResult struct {
 	EoesFrom     *CustomTime `json:"eoesFrom"`
 	IsMaintained bool       `json:"isMaintained"`
 	Latest       ProductCycleLatest     `json:"latest"`
-	Custom       *string    `json:"custom"`
+	Custom       *interface{}    `json:"custom"`
 }
 
 // parsing JSON date strings as time.Time

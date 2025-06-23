@@ -1,0 +1,5 @@
+port: 3234
+plugins:
+  - docker
+  - ansible
+  - python
