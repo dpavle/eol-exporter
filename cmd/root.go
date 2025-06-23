@@ -4,9 +4,10 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"eol-exporter/internal/exporter"
 	"fmt"
 	"os"
-	"eol-exporter/internal/exporter"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,7 +32,7 @@ The EOL data is pulled from the endoflife.date API (https://endoflife.date/docs/
 
 		err := exporter.StartExporter()
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	},
 }
