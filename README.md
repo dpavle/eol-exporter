@@ -1,16 +1,16 @@
 # eol-exporter
 
-**eol-exporter** is a Prometheus exporter that exposes End-of-Life (EOL) information about your operating system, kernel, and installed software. By default, it collects and exports EOL data for your OS and kernel.
-
-Additional software or products can be included via a simple plugin system, allowing you to monitor EOL status for any software or product.
-
-The EOL data is pulled from the [endoflife.date API](https://endoflife.date/docs/api/v1/) and is refreshed every 24 hours.
-
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/dpavle/eol-exporter)](https://golang.org/doc/devel/release.html)
 [![Build Status](https://github.com/dpavle/eol-exporter/actions/workflows/go.yml/badge.svg)](https://github.com/dpavle/eol-exporter/actions)
 [![Latest Release](https://img.shields.io/github/v/release/dpavle/eol-exporter.svg?label=release)](https://github.com/dpavle/eol-exporter/releases)
 [![Prometheus Exporter](https://img.shields.io/badge/prometheus-exporter-orange.svg)](https://prometheus.io/)
+
+**eol-exporter** is a Prometheus exporter that exposes End-of-Life (EOL) information about your operating system, kernel, and installed software. By default, it collects and exports EOL data for your OS and kernel.
+
+Additional software or products can be included via a simple plugin system, allowing you to monitor EOL status for any software or product.
+
+The EOL data is pulled from the [endoflife.date API](https://endoflife.date/docs/api/v1/) and is refreshed every 24 hours.
 
 > **Partially inspired by** [reimlima/endoflife_exporter](https://github.com/reimlima/endoflife_exporter)
 
