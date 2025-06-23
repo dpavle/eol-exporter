@@ -1,3 +1,5 @@
-port: 3020
+port: 3234
 plugins:
-  - ubuntu_demo
+  - docker
+  - ansible
+  - python

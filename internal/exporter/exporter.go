@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"log"
 	"plugin"
+	"net"
 	"github.com/spf13/viper"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -54,6 +55,18 @@ var (
 			//"labels",
 			//"links",
 			//"releases",
+		},
+	)
+	ReleaseDateUnixTS = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "release_date",
+			Help: "Release date of the product release cycle. Expressed in seconds since Unix epoch (Unix Timestamp).",
+		}, []string{
+			"host",
+			"name",
+			"product",
+			"codename",
+			"label",
 		},
 	)
 	EolDateUnixTS = prometheus.NewGaugeVec(
@@ -122,6 +135,14 @@ func RegisterTimeSeries(reg *prometheus.Registry, productCycleData api.ProductCy
 		productDetailsData.Result.VersionCommand,
 	).Set(1)
 
+	ReleaseDateUnixTS.WithLabelValues(
+		fmt.Sprintf("%s", hostname),
+		productCycleData.Result.Name,
+		productCycleData.Product,
+		productCycleData.Result.Codename,
+		productCycleData.Result.Label,
+	).Set(float64(productCycleData.Result.ReleaseDate.Unix()))
+
 	if productCycleData.Result.EolFrom != nil {
 		EolDateUnixTS.WithLabelValues(
 			fmt.Sprintf("%s", hostname),
@@ -189,6 +210,7 @@ func StartExporter() error {
 
 	reg.MustRegister(ProductReleaseInfo)
 	reg.MustRegister(ProductDetailsInfo)
+	reg.MustRegister(ReleaseDateUnixTS)
 	reg.MustRegister(EolDateUnixTS)
 	reg.MustRegister(EoasDateUnixTS)
 	reg.MustRegister(EoesDateUnixTS)
@@ -233,7 +255,13 @@ func StartExporter() error {
 	http.Handle("/metrics", handler)
 
 	port := viper.GetString("port")
+	addr := viper.GetString("address")
 
-	fmt.Printf("Starting HTTP server on %s", port)
-	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%s", addr, port))
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Starting HTTP server on %s:%s\n", addr, port)
+	return http.Serve(ln, nil)
 }
