@@ -16,7 +16,9 @@ builds:
     goarch:
       - amd64
     no_main_check: true
-    ldflags: --buildmode=plugin --tags plugin
+    tags:
+      - plugin
+    ldflags: --buildmode=plugin
 
   - id: docker-plugin
     dir: plugins
@@ -27,7 +29,9 @@ builds:
     goarch:
       - amd64
     no_main_check: true
-    ldflags: --buildmode=plugin --tags plugin
+    tags:
+      - plugin
+    ldflags: --buildmode=plugin
 
   - id: python-plugin
     dir: plugins
@@ -38,7 +42,9 @@ builds:
     goarch:
       - amd64
     no_main_check: true
-    ldflags: --buildmode=plugin --tags plugin
+    tags:
+      - plugin
+    ldflags: --buildmode=plugin
 
 archives:
   - id: linux
