@@ -6,6 +6,8 @@ builds:
       - linux
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
 
   - id: ansible-plugin
     dir: plugins
@@ -15,6 +17,8 @@ builds:
       - linux
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
     no_main_check: true
     tags:
       - plugin
@@ -28,6 +32,8 @@ builds:
       - linux
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
     no_main_check: true
     tags:
       - plugin
@@ -41,6 +47,8 @@ builds:
       - linux
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
     no_main_check: true
     tags:
       - plugin
